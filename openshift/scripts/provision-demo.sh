@@ -389,8 +389,10 @@ function deploy_gogs() {
 
   echo "Using template $_TEMPLATE"
   if [ "$ARG_EPHEMERAL" = true ] ; then
+    echo "oc $ARG_OC_OP new-app postgresql-ephemeral --param=DATABASE_SERVICE_NAME=gogs-postgresql --param=POSTGRESQL_USER=$_DB_USER --param=POSTGRESQL_PASSWORD=$_DB_PASSWORD --param=POSTGRESQL_DATABASE=$_DB_NAME -n ${PRJ_CI[0]}"
     oc $ARG_OC_OP new-app postgresql-ephemeral --param=DATABASE_SERVICE_NAME=gogs-postgresql --param=POSTGRESQL_USER=$_DB_USER --param=POSTGRESQL_PASSWORD=$_DB_PASSWORD --param=POSTGRESQL_DATABASE=$_DB_NAME -n ${PRJ_CI[0]}
   else
+    echo "oc $ARG_OC_OP new-app postgresql-persistent --param=DATABASE_SERVICE_NAME=gogs-postgresql --param=POSTGRESQL_USER=$_DB_USER --param=POSTGRESQL_PASSWORD=$_DB_PASSWORD --param=POSTGRESQL_DATABASE=$_DB_NAME -n ${PRJ_CI[0]}"
     oc $ARG_OC_OP new-app postgresql-persistent --param=DATABASE_SERVICE_NAME=gogs-postgresql --param=POSTGRESQL_USER=$_DB_USER --param=POSTGRESQL_PASSWORD=$_DB_PASSWORD --param=POSTGRESQL_DATABASE=$_DB_NAME -n ${PRJ_CI[0]}
   fi
   
