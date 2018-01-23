@@ -388,12 +388,17 @@ function deploy_gogs() {
   local _DB_NAME=gogs
 
   echo "Using template $_TEMPLATE"
-  oc $ARG_OC_OP process -f $_TEMPLATE --param=HOSTNAME=$GOGS_ROUTE --param=GOGS_VERSION=0.9.113 --param=DATABASE_USER=$_DB_USER --param=DATABASE_PASSWORD=$_DB_PASSWORD --param=DATABASE_NAME=$_DB_NAME --param=SKIP_TLS_VERIFY=true -n ${PRJ_CI[0]} | oc $ARG_OC_OP create -f - -n ${PRJ_CI[0]}
-
-  sleep 5
-
-  # wait for Gogs to be ready
+  if [ "$ARG_EPHEMERAL" = true ] ; then
+    oc $ARG_OC_OP new-app postgresql-ephemeral --param=DATABASE_SERVICE_NAME=gogs-postgresql --param=POSTGRESQL_USER=$_DB_USER --param=POSTGRESQL_PASSWORD=$_DB_PASSWORD --param=POSTGRESQL_DATABASE=$_DB_NAME -n ${PRJ_CI[0]}
+  else
+    oc $ARG_OC_OP new-app postgresql-persistent --param=DATABASE_SERVICE_NAME=gogs-postgresql --param=POSTGRESQL_USER=$_DB_USER --param=POSTGRESQL_PASSWORD=$_DB_PASSWORD --param=POSTGRESQL_DATABASE=$_DB_NAME -n ${PRJ_CI[0]}
+  fi
+  
+  sleep 2
   oc $ARG_OC_OP rollout status dc gogs-postgresql -n ${PRJ_CI[0]}
+  sleep 2
+  oc $ARG_OC_OP process -f $_TEMPLATE --param=HOSTNAME=$GOGS_ROUTE --param=GOGS_VERSION=0.9.113 --param=DATABASE_USER=$_DB_USER --param=DATABASE_PASSWORD=$_DB_PASSWORD --param=DATABASE_NAME=$_DB_NAME --param=SKIP_TLS_VERIFY=true -n ${PRJ_CI[0]} | oc $ARG_OC_OP create -f - -n ${PRJ_CI[0]}
+  sleep 2
   oc $ARG_OC_OP rollout status dc gogs -n ${PRJ_CI[0]}
 
   sleep 10
